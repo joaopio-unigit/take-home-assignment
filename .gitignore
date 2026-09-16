@@ -1,0 +1,19 @@
+# .NET build output
+**/bin/
+**/obj/
+
+# Visual Studio user files
+.vs/
+*.user
+*.suo
+
+# Test and coverage output
+TestResults/
+coverage/
+
+# Rider
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
