@@ -2,8 +2,9 @@
 using UserManagement.Core.Repositories;
 using UserManagement.Core.Services;
 
-const string EmailLookup = "jane.smith@example.com";
-const int AgeThreshold = 30;
+const string EMAIL_LOOKUP = "jane.smith@example.com";
+const int AGE_THRESHOLD = 30;
+const string COMMAND_PROMPT = "\nEnter a command (1-4): ";
 
 if (args.Length == 0)
 {
@@ -36,25 +37,23 @@ Console.WriteLine("User Management Console");
 Console.WriteLine("========================");
 Console.WriteLine($"Loaded data from: {csvPath}");
 Console.WriteLine();
-Console.WriteLine("1. Find user with email jane.smith@example.com");
-Console.WriteLine("2. Find all users older than 30");
+Console.WriteLine($"1. Find user with email {EMAIL_LOOKUP}");
+Console.WriteLine($"2. Find all users older than {AGE_THRESHOLD}");
 Console.WriteLine("3. Calculate average age of all users");
 Console.WriteLine("4. Exit");
-Console.WriteLine();
-Console.WriteLine("Enter a command (1-4):");
+Console.Write(COMMAND_PROMPT);
 
 while (true)
 {
-    Console.Write("Command: ");
     var input = Console.ReadLine();
 
     switch (input)
     {
         case "1":
-            var user = service!.FindByEmail(EmailLookup);
+            var user = service!.FindByEmail(EMAIL_LOOKUP);
             if (user is null)
             {
-                Console.WriteLine("User with email jane.smith@example.com was not found.");
+                Console.WriteLine($"User with email {EMAIL_LOOKUP} was not found.");
             }
             else
             {
@@ -66,10 +65,10 @@ while (true)
             break;
 
         case "2":
-            var olderUsers = service!.FindOlderThan(AgeThreshold).ToList();
+            var olderUsers = service!.FindOlderThan(AGE_THRESHOLD).ToList();
             if (olderUsers.Count == 0)
             {
-                Console.WriteLine("No users older than 30 were found.");
+                Console.WriteLine($"No users older than {AGE_THRESHOLD} were found.");
             }
             else
             {
@@ -100,5 +99,5 @@ while (true)
             break;
     }
 
-    Console.WriteLine("Enter a command (1-4):");
+    Console.Write(COMMAND_PROMPT);
 }
