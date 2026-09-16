@@ -10,11 +10,7 @@ public class UsersServiceTests
     [Fact]
     public void FindByEmail_WhenEmailExists_ReturnsCorrectUser()
     {
-        var users = new List<User>
-        {
-            new() { Id = 1, Name = "John Doe", Email = "john.doe@example.com", Age = 31 },
-            new() { Id = 2, Name = "Jane Smith", Email = "jane.smith@example.com", Age = 25 }
-        };
+        var users = TestData.CreateUsers();
 
         var mockRepository = new Mock<IUsersRepository>();
         mockRepository.Setup(r => r.GetAll()).Returns(users);
@@ -31,10 +27,7 @@ public class UsersServiceTests
     [Fact]
     public void FindByEmail_WhenEmailExistsWithDifferentCasing_ReturnsUser()
     {
-        var users = new List<User>
-        {
-            new() { Id = 2, Name = "Jane Smith", Email = "jane.smith@example.com", Age = 25 }
-        };
+        var users = TestData.CreateUsers();
 
         var mockRepository = new Mock<IUsersRepository>();
         mockRepository.Setup(r => r.GetAll()).Returns(users);
@@ -50,10 +43,7 @@ public class UsersServiceTests
     [Fact]
     public void FindByEmail_WhenEmailDoesNotExist_ReturnsNull()
     {
-        var users = new List<User>
-        {
-            new() { Id = 1, Name = "John Doe", Email = "john.doe@example.com", Age = 31 }
-        };
+        var users = TestData.CreateUsers();
 
         var mockRepository = new Mock<IUsersRepository>();
         mockRepository.Setup(r => r.GetAll()).Returns(users);
@@ -68,12 +58,7 @@ public class UsersServiceTests
     [Fact]
     public void FindOlderThan_ReturnsOnlyUsersStrictlyOlderThanAge()
     {
-        var users = new List<User>
-        {
-            new() { Id = 1, Name = "John Doe", Email = "john.doe@example.com", Age = 31 },
-            new() { Id = 2, Name = "Jane Smith", Email = "jane.smith@example.com", Age = 30 },
-            new() { Id = 3, Name = "Bob Johnson", Email = "bob.johnson@example.com", Age = 40 }
-        };
+        var users = TestData.CreateUsers();
 
         var mockRepository = new Mock<IUsersRepository>();
         mockRepository.Setup(r => r.GetAll()).Returns(users);
@@ -82,27 +67,24 @@ public class UsersServiceTests
 
         var result = service.FindOlderThan(30).ToList();
 
-        Assert.Equal(2, result.Count);
+        Assert.Equal(3, result.Count);
         Assert.Contains(result, u => u.Id == 1);
         Assert.Contains(result, u => u.Id == 3);
-        Assert.DoesNotContain(result, u => u.Id == 2);
+        Assert.Contains(result, u => u.Id == 5);
+        Assert.DoesNotContain(result, u => u.Id == 4);
     }
 
     [Fact]
     public void FindOlderThan_WhenNoUsersMatch_ReturnsEmptyCollection()
     {
-        var users = new List<User>
-        {
-            new() { Id = 1, Name = "Jane Smith", Email = "jane.smith@example.com", Age = 30 },
-            new() { Id = 2, Name = "Bob Johnson", Email = "bob.johnson@example.com", Age = 30 }
-        };
+        var users = TestData.CreateUsers();
 
         var mockRepository = new Mock<IUsersRepository>();
         mockRepository.Setup(r => r.GetAll()).Returns(users);
 
         var service = new UsersService(mockRepository.Object);
 
-        var result = service.FindOlderThan(30).ToList();
+        var result = service.FindOlderThan(65).ToList();
 
         Assert.NotNull(result);
         Assert.Empty(result);
@@ -111,18 +93,14 @@ public class UsersServiceTests
     [Fact]
     public void GetAverageAge_WhenUsersExist_ReturnsCorrectAverage()
     {
-        var users = new List<User>
-        {
-            new() { Id = 1, Name = "John Doe", Email = "john.doe@example.com", Age = 30 },
-            new() { Id = 2, Name = "Jane Smith", Email = "jane.smith@example.com", Age = 35 }
-        };
+        var users = TestData.CreateUsers();
 
         var mockRepository = new Mock<IUsersRepository>();
         mockRepository.Setup(r => r.GetAll()).Returns(users);
 
         var service = new UsersService(mockRepository.Object);
 
-        Assert.Equal(32.5, service.GetAverageAge());
+        Assert.Equal(38.2, service.GetAverageAge());
     }
 
     [Fact]
@@ -136,5 +114,56 @@ public class UsersServiceTests
         var service = new UsersService(mockRepository.Object);
 
         Assert.Equal(0, service.GetAverageAge());
+    }
+
+    [Fact]
+    public void Constructor_RequestsUsersFromRepositoryExactlyOnce()
+    {
+        var mockRepository = new Mock<IUsersRepository>();
+        mockRepository.Setup(r => r.GetAll()).Returns(TestData.CreateUsers());
+
+        _ = new UsersService(mockRepository.Object);
+
+        mockRepository.Verify(r => r.GetAll(), Times.Once);
+    }
+
+    [Fact]
+    public void MethodsUseCachedUsersWithoutRequestingRepositoryAgain()
+    {
+        var mockRepository = new Mock<IUsersRepository>();
+        mockRepository.Setup(r => r.GetAll()).Returns(TestData.CreateUsers());
+        var service = new UsersService(mockRepository.Object);
+
+        service.FindByEmail("john.doe@example.com");
+        service.FindOlderThan(30).ToList();
+        service.GetAverageAge();
+
+        mockRepository.Verify(r => r.GetAll(), Times.Once);
+    }
+
+    [Fact]
+    public void FindByEmail_WhenEmailIsEmpty_ReturnsNull()
+    {
+        var mockRepository = new Mock<IUsersRepository>();
+        mockRepository.Setup(r => r.GetAll()).Returns(TestData.CreateUsers());
+        var service = new UsersService(mockRepository.Object);
+
+        var result = service.FindByEmail(string.Empty);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void FindOlderThan_WhenAgeIsBelowAllUsers_ReturnsEveryUser()
+    {
+        var users = TestData.CreateUsers();
+        var mockRepository = new Mock<IUsersRepository>();
+        mockRepository.Setup(r => r.GetAll()).Returns(users);
+        var service = new UsersService(mockRepository.Object);
+
+        var result = service.FindOlderThan(0).ToList();
+
+        Assert.Equal(users.Count, result.Count);
+        Assert.Equal(users.Select(u => u.Id), result.Select(u => u.Id));
     }
 }
