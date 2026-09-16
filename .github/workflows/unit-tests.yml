@@ -12,7 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  Unit Tests:
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
 
     steps:
