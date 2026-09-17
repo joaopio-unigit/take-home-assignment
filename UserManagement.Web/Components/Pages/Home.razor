@@ -9,7 +9,15 @@
 	<section class="operation-panel" aria-labelledby="page-title">
 		<div class="eyebrow">User Management</div>
 		<h1 id="page-title">Explore the user directory</h1>
-		<p class="intro">Choose one of the fixed operations to query the loaded CSV data.</p>
+		<p class="intro">Enter search values, then choose an operation to query the loaded CSV data.</p>
+
+		<div class="search-fields">
+			<label for="email-lookup">Email address</label>
+			<input id="email-lookup" type="email" @bind="emailLookup" @bind:event="oninput" placeholder="jane.smith@example.com" />
+
+			<label for="age-threshold">Age threshold</label>
+			<input id="age-threshold" type="number" min="0" @bind="ageInput" @bind:event="oninput" placeholder="30" />
+		</div>
 
 		<div class="operation-buttons">
 			<button type="button" disabled="@buttonsDisabled" @onclick="OnFindByEmail">
@@ -18,7 +26,7 @@
 			</button>
 			<button type="button" disabled="@buttonsDisabled" @onclick="OnFindOlderThan">
 				<span class="button-index">02</span>
-				<span>Find users older than 30</span>
+				<span>Find users older than threshold</span>
 			</button>
 			<button type="button" disabled="@buttonsDisabled" @onclick="OnAverageAge">
 				<span class="button-index">03</span>
@@ -40,11 +48,10 @@
 </main>
 
 @code {
-	private const string EmailLookup = "jane.smith@example.com";
-	private const int AgeThreshold = 30;
-
 	private readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true };
 	private bool buttonsDisabled;
+	private string emailLookup = string.Empty;
+	private string ageInput = string.Empty;
 	private string resultJson = string.Empty;
 
 	protected override void OnInitialized()
@@ -63,10 +70,17 @@
 	{
 		try
 		{
-			var user = DataContext.Service!.FindByEmail(EmailLookup);
+			var lookup = emailLookup.Trim();
+			if (string.IsNullOrWhiteSpace(lookup))
+			{
+				resultJson = JsonSerializer.Serialize("Error: An email address is required.", jsonOptions);
+				return;
+			}
+
+			var user = DataContext.Service!.FindByEmail(lookup);
 			object result = user is not null
 				? user
-				: $"User with email {EmailLookup} was not found.";
+				: $"User with email {lookup} was not found.";
 			resultJson = JsonSerializer.Serialize(result, jsonOptions);
 		}
 		catch (Exception ex)
@@ -79,10 +93,16 @@
 	{
 		try
 		{
-			var users = DataContext.Service!.FindOlderThan(AgeThreshold).ToList();
+			if (!int.TryParse(ageInput, out var ageThreshold) || ageThreshold < 0)
+			{
+				resultJson = JsonSerializer.Serialize("Error: Enter a valid non-negative age threshold.", jsonOptions);
+				return;
+			}
+
+			var users = DataContext.Service!.FindOlderThan(ageThreshold).ToList();
 			object result = users.Count > 0
 				? users
-				: $"No users older than {AgeThreshold} were found.";
+				: $"No users older than {ageThreshold} were found.";
 			resultJson = JsonSerializer.Serialize(result, jsonOptions);
 		}
 		catch (Exception ex)
