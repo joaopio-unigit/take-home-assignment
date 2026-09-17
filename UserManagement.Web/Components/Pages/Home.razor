@@ -1,0 +1,106 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using System.Text.Json
+@inject UsersDataContext DataContext
+
+<PageTitle>User Management</PageTitle>
+
+<main class="user-management-shell">
+	<section class="operation-panel" aria-labelledby="page-title">
+		<div class="eyebrow">User Management</div>
+		<h1 id="page-title">Explore the user directory</h1>
+		<p class="intro">Choose one of the fixed operations to query the loaded CSV data.</p>
+
+		<div class="operation-buttons">
+			<button type="button" disabled="@buttonsDisabled" @onclick="OnFindByEmail">
+				<span class="button-index">01</span>
+				<span>Find user by email</span>
+			</button>
+			<button type="button" disabled="@buttonsDisabled" @onclick="OnFindOlderThan">
+				<span class="button-index">02</span>
+				<span>Find users older than 30</span>
+			</button>
+			<button type="button" disabled="@buttonsDisabled" @onclick="OnAverageAge">
+				<span class="button-index">03</span>
+				<span>Calculate average age</span>
+			</button>
+		</div>
+	</section>
+
+	<section class="result-panel" aria-labelledby="result-title">
+		<div class="result-heading">
+			<div>
+				<div class="eyebrow">Latest response</div>
+				<h2 id="result-title">JSON result</h2>
+			</div>
+			<span class="status-dot" aria-hidden="true"></span>
+		</div>
+		<pre class="result-output">@resultJson</pre>
+	</section>
+</main>
+
+@code {
+	private const string EmailLookup = "jane.smith@example.com";
+	private const int AgeThreshold = 30;
+
+	private readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true };
+	private bool buttonsDisabled;
+	private string resultJson = string.Empty;
+
+	protected override void OnInitialized()
+	{
+		if (!DataContext.IsLoaded)
+		{
+			buttonsDisabled = true;
+			resultJson = JsonSerializer.Serialize(DataContext.ErrorMessage, jsonOptions);
+			return;
+		}
+
+		resultJson = "Click a button to see a result.";
+	}
+
+	private void OnFindByEmail()
+	{
+		try
+		{
+			var user = DataContext.Service!.FindByEmail(EmailLookup);
+			object result = user is not null
+				? user
+				: $"User with email {EmailLookup} was not found.";
+			resultJson = JsonSerializer.Serialize(result, jsonOptions);
+		}
+		catch (Exception ex)
+		{
+			resultJson = JsonSerializer.Serialize($"Error: {ex.Message}", jsonOptions);
+		}
+	}
+
+	private void OnFindOlderThan()
+	{
+		try
+		{
+			var users = DataContext.Service!.FindOlderThan(AgeThreshold).ToList();
+			object result = users.Count > 0
+				? users
+				: $"No users older than {AgeThreshold} were found.";
+			resultJson = JsonSerializer.Serialize(result, jsonOptions);
+		}
+		catch (Exception ex)
+		{
+			resultJson = JsonSerializer.Serialize($"Error: {ex.Message}", jsonOptions);
+		}
+	}
+
+	private void OnAverageAge()
+	{
+		try
+		{
+			var average = DataContext.Service!.GetAverageAge();
+			resultJson = JsonSerializer.Serialize(average, jsonOptions);
+		}
+		catch (Exception ex)
+		{
+			resultJson = JsonSerializer.Serialize($"Error: {ex.Message}", jsonOptions);
+		}
+	}
+}
