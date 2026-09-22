@@ -50,37 +50,15 @@ while (true)
     switch (input)
     {
         case "1":
-            var user = service!.FindByEmail(EMAIL_LOOKUP);
-            if (user is null)
-            {
-                Console.WriteLine($"User with email {EMAIL_LOOKUP} was not found.");
-            }
-            else
-            {
-                Console.WriteLine($"Id: {user.Id}");
-                Console.WriteLine($"Name: {user.Name}");
-                Console.WriteLine($"Email: {user.Email}");
-                Console.WriteLine($"Age: {user.Age}");
-            }
+            FindByEmail(service!);
             break;
 
         case "2":
-            var olderUsers = service!.FindOlderThan(AGE_THRESHOLD).ToList();
-            if (olderUsers.Count == 0)
-            {
-                Console.WriteLine($"No users older than {AGE_THRESHOLD} were found.");
-            }
-            else
-            {
-                foreach (var olderUser in olderUsers)
-                {
-                    Console.WriteLine($"Id: {olderUser.Id}, Name: {olderUser.Name}, Email: {olderUser.Email}, Age: {olderUser.Age}");
-                }
-            }
+            FindOlderThan(service!);
             break;
 
         case "3":
-            Console.WriteLine($"Average age: {service!.GetAverageAge():F2}");
+            CalculateAverageAge(service!);
             break;
 
         case "4":
@@ -100,4 +78,41 @@ while (true)
     }
 
     Console.Write(COMMAND_PROMPT);
+}
+
+static void FindByEmail(IUsersService service)
+{
+    var user = service.FindByEmail(EMAIL_LOOKUP);
+    if (user is null)
+    {
+        Console.WriteLine($"User with email {EMAIL_LOOKUP} was not found.");
+    }
+    else
+    {
+        Console.WriteLine($"Id: {user.Id}");
+        Console.WriteLine($"Name: {user.Name}");
+        Console.WriteLine($"Email: {user.Email}");
+        Console.WriteLine($"Age: {user.Age}");
+    }
+}
+
+static void FindOlderThan(IUsersService service)
+{
+    var olderUsers = service.FindOlderThan(AGE_THRESHOLD).ToList();
+    if (olderUsers.Count == 0)
+    {
+        Console.WriteLine($"No users older than {AGE_THRESHOLD} were found.");
+    }
+    else
+    {
+        foreach (var olderUser in olderUsers)
+        {
+            Console.WriteLine($"Id: {olderUser.Id}, Name: {olderUser.Name}, Email: {olderUser.Email}, Age: {olderUser.Age}");
+        }
+    }
+}
+
+static void CalculateAverageAge(IUsersService service)
+{
+    Console.WriteLine($"Average age: {service.GetAverageAge():F2}");
 }
