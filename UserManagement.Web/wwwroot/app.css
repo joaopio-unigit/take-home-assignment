@@ -13,6 +13,13 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
     margin: 0;
     color: var(--ink);
@@ -34,18 +41,23 @@ pre {
 .user-management-shell {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    min-height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .operation-panel,
 .result-panel {
-    padding: clamp(2rem, 6vw, 6rem);
+    min-width: 0;
+    min-height: 0;
+    padding: clamp(1.25rem, 5vh, 6rem) clamp(1.5rem, 6vw, 6rem);
 }
 
 .operation-panel {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    overflow: hidden;
     background: var(--mint);
 }
 
@@ -53,6 +65,7 @@ pre {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    overflow: hidden;
     background: var(--panel);
     border-left: 1px solid var(--line);
 }
@@ -70,7 +83,7 @@ pre {
 h1 {
     max-width: 29rem;
     margin-bottom: 1.25rem;
-    font-size: clamp(2.6rem, 5vw, 5.2rem);
+    font-size: clamp(2.25rem, 7vh, 5.2rem);
     line-height: 0.95;
     font-weight: 400;
 }
@@ -178,7 +191,8 @@ h2 {
 }
 
 .result-output {
-    min-height: 18rem;
+    flex: 1 1 auto;
+    min-height: 0;
     margin: 0;
     padding: 1.5rem;
     overflow: auto;
@@ -194,6 +208,7 @@ h2 {
 @media (max-width: 760px) {
     .user-management-shell {
         grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
     }
 
     .operation-panel,
@@ -204,6 +219,45 @@ h2 {
     .result-panel {
         border-top: 1px solid var(--line);
         border-left: 0;
+    }
+}
+
+@media (max-height: 700px) and (min-width: 761px) {
+    .operation-panel,
+    .result-panel {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    h1 {
+        margin-bottom: 0.75rem;
+        font-size: clamp(2rem, 6vh, 3.5rem);
+    }
+
+    .intro {
+        margin-bottom: 1rem;
+    }
+
+    .search-fields {
+        gap: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .search-fields input {
+        min-height: 2.25rem;
+        margin-bottom: 0.2rem;
+        padding-top: 0.35rem;
+        padding-bottom: 0.35rem;
+    }
+
+    .operation-buttons {
+        gap: 0.4rem;
+    }
+
+    .operation-buttons button {
+        min-height: 2.75rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
 }
 
